@@ -8,7 +8,7 @@ import play.api.libs.ws.Response
 import play.api.libs.concurrent.Promise
 import play.api.http.Status._
 import play.api.mvc.Request
-import play.api.http.HeaderNames
+import play.api.http.{ContentTypeOf, Writeable, HeaderNames}
 
 object OpenIDSpec extends Specification with Mockito {
 
@@ -27,37 +27,37 @@ object OpenIDSpec extends Specification with Mockito {
     "verify the response" in {
       val ws = new WSMock
 
-      ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml") thenReturns Some("text/plain")
-      ws.response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/simple-op.xml"))
-      ws.response.body returns "is_valid:true"
-
-
-      val request = mock[Request[_]]
-      request.queryString returns createDefaultResponse(claimedId, identity, defaultSigned)
+      ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("text/plain")
+      ws.response.body returns "is_valid:true\n" // http://openid.net/specs/openid-authentication-2_0.html#kvform
 
       val openId = new OpenIDClient(ws.url)
 
-      val userInfo = openId.verifiedId(request).value.get
+      val userInfo = openId.verifiedId(setupMockRequest).value.get
       userInfo.id must be equalTo claimedId
+
+      there was one(ws.request).post(anyString)(any[Writeable[String]], any[ContentTypeOf[String]])
     }
 
     "fail response verification if direct verification fails" in {
       val ws = new WSMock
 
-      ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml") thenReturns Some("text/plain")
-      ws.response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/simple-op.xml"))
-      ws.response.body returns ""
-
-
-      val request = mock[Request[_]]
-      request.queryString returns createDefaultResponse(claimedId, identity, defaultSigned)
+      ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("text/plain")
+      ws.response.body returns "is_valid:false\n"
 
       val openId = new OpenIDClient(ws.url)
 
-      openId.verifiedId(request).value.get must throwA[OpenIDError]
+      openId.verifiedId(setupMockRequest).value.get must throwA[OpenIDError]
+
+      there was one(ws.request).post(anyString)(any[Writeable[String]], any[ContentTypeOf[String]])
     }
   }
 
+  def setupMockRequest = {
+    val request = mock[Request[_]]
+    request.queryString returns openIdResponse
+    request
+  }
 
+  def openIdResponse = createDefaultResponse(claimedId, identity, defaultSigned)
 
 }
