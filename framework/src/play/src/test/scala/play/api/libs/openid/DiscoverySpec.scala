@@ -221,8 +221,6 @@ object DiscoverySpec extends Specification with Mockito {
     case _ => params.get(key) must beNone
   }
 
-  private def readFixture(filePath: String) = Source.fromInputStream(this.getClass.getResourceAsStream(filePath)).mkString
-
   private def parseQueryString(url: String): Params = {
     catching(classOf[MalformedURLException]) opt new URL(url) map {
       url =>
