@@ -152,7 +152,7 @@ private[openid] class Discovery(ws: (String) => WSRequestHolder) {
       }
       def schemeForPort(p: Int) = p match {
         case 443 => "https"
-       case _ => "http"
+        case _ => "http"
       }
       def scheme(uri:URI) = Option(uri.getScheme) getOrElse schemeForPort(uri.getPort)
       def path(path:String) = if(null == path || path.isEmpty) "/" else path
