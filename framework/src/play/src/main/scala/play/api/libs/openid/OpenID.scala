@@ -119,13 +119,13 @@ private[openid] class OpenIDClient(ws: (String) => WSRequestHolder) {
 
   private def axParameters(axRequired: Seq[(String, String)],
                            axOptional: Seq[(String, String)]): Seq[(String, String)] = {
-    if (axRequired.length == 0 && axOptional.length == 0)
+    if (axRequired.isEmpty && axOptional.isEmpty)
       Nil
     else {
-      val axRequiredParams = if (axRequired.size == 0) Nil
+      val axRequiredParams = if (axRequired.isEmpty) Nil
       else Seq("openid.ax.required" -> axRequired.map(_._1).mkString(","))
 
-      val axOptionalParams = if (axOptional.size == 0) Nil
+      val axOptionalParams = if (axOptional.isEmpty) Nil
       else Seq("openid.ax.if_available" -> axOptional.map(_._1).mkString(","))
 
       val definitions = (axRequired ++ axOptional).map(attribute => ("openid.ax.type." + attribute._1 -> attribute._2))
