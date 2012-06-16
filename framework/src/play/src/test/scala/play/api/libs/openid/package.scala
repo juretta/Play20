@@ -4,6 +4,8 @@ import java.net.URL
 import io.Source
 
 package object openid {
+  type Params = Map[String, Seq[String]]
+
   implicit def stringToSeq(s: String): Seq[String] = Seq(s)
 
   trait RichUrl[A] {
