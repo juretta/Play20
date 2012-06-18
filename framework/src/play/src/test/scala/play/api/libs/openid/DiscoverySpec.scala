@@ -96,6 +96,22 @@ object DiscoverySpec extends Specification with Mockito {
         verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
       }
 
+      "when getting a Google discovery response" in {
+        val ws = new WSMock
+        ws.response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/example-gapps-response.xml"))
+        ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
+
+        val returnTo = "http://foo.bar.com/openid"
+        val openId = "http://abc.example.com/foo"
+        val redirectUrl = new OpenIDClient(ws.url).redirectURL(openId, returnTo).value.get
+
+        there was one(ws.request).get()
+
+        new URL(redirectUrl).hostAndPath must be equalTo "https://www.google.com/a/example.com/o8/ud"
+
+        verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
+      }
+
       "with multiple service elements" in {
         val ws = new WSMock
         ws.response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/multi-service.xml"))

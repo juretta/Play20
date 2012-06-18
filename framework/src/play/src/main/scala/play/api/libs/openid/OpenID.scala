@@ -179,7 +179,7 @@ private[openid] class Discovery(ws: (String) => WSRequestHolder) {
       uri <- serviceTypeId.flatMap(findInXml(_)).headOption
     } yield OpenIDServer(uri, None)
 
-    private def findUriWithType(xml: Node)(typeId: String) = (xml \ "XRD" \ "Service" find (node => (node \ "Type").text == typeId)).map {
+    private def findUriWithType(xml: Node)(typeId: String) = (xml \ "XRD" \ "Service").find(service => (service \ "Type").find(ty => ty.text == typeId).isDefined).map {
       node =>
         (node \ "URI").text.trim
     }
