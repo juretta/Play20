@@ -100,10 +100,11 @@ private[openid] class OpenIDClient(ws: (String) => WSRequestHolder) {
 
   private def verifiedId(queryString: Map[String, Seq[String]]): Promise[UserInfo] = {
     (queryString.get("openid.mode").flatMap(_.headOption),
-      queryString.get("openid.claimed_id").flatMap(_.headOption).orElse(queryString.get("openid.identity").flatMap(_.headOption)),
+      queryString.get("openid.claimed_id").flatMap(_.headOption), // The Claimed Identifier. "openid.claimed_id" and "openid.identity" SHALL be either both present or both absent.
       queryString.get("openid.op_endpoint").flatMap(_.headOption)) match {
       case (Some("id_res"), Some(id), endPoint) => {
-        val server: Promise[String] = endPoint.map(PurePromise(_)).getOrElse(discovery.discoverServer(id).map(_.url))
+        // Must perform discovery on the claimedId to resolve the op_endpoint.
+        val server: Promise[String] = discovery.discoverServer(id).map(_.url)
         server.flatMap(url => {
           val fields = (queryString - "openid.mode" + ("openid.mode" -> Seq("check_authentication")))
           ws(url).post(fields).map(response => {
@@ -166,6 +167,7 @@ private[openid] class Discovery(ws: (String) => WSRequestHolder) {
     def resolve(response:Response):Option[OpenIDServer]
   }
 
+  // TODO: Verify schema, namespace and support verification of XML signatures
   class XrdsResolver extends Resolver {
     // http://openid.net/specs/openid-authentication-2_0.html#service_elements and
     // OpenID 1 compatibility: http://openid.net/specs/openid-authentication-2_0.html#anchor38

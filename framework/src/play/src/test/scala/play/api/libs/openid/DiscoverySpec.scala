@@ -89,7 +89,7 @@ object DiscoverySpec extends Specification with Mockito {
 
         there was one(ws.request).get()
 
-        new URL(redirectUrl).hostAndPath must be equalTo "http://openidprovider.example.com"
+        new URL(redirectUrl).hostAndPath must be equalTo "https://www.google.com/a/example.com/o8/ud?be=o8"
 
         verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
       }
