@@ -5,8 +5,10 @@ import org.specs2.mock._
 import java.net.URL
 import play.api.http.HeaderNames
 import play.api.http.Status._
+import org.specs2.control.NoStackTraceFilter
 
 object DiscoverySpec extends Specification with Mockito {
+
 
   val ws = new WSMock
   val discovery = new Discovery(ws.url)
@@ -89,7 +91,7 @@ object DiscoverySpec extends Specification with Mockito {
 
         there was one(ws.request).get()
 
-        new URL(redirectUrl).hostAndPath must be equalTo "https://www.google.com/a/example.com/o8/ud?be=o8"
+        new URL(redirectUrl).hostAndPath must be equalTo "https://www.google.com/a/example.com/o8/ud"
 
         verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
       }
