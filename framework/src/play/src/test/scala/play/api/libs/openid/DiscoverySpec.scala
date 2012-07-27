@@ -5,13 +5,11 @@ import org.specs2.mock._
 import java.net.URL
 import play.api.http.HeaderNames
 import play.api.http.Status._
-import org.specs2.control.NoStackTraceFilter
 
 object DiscoverySpec extends Specification with Mockito {
 
-
   val ws = new WSMock
-  val discovery = new Discovery(ws.url)
+  val discovery = new DefaultDiscovery(ws.url)
 
   private def normalize(s: String) = discovery.normalizeIdentifier(s)
 
@@ -19,18 +17,18 @@ object DiscoverySpec extends Specification with Mockito {
     // Adapted from org.openid4java.discovery.NormalizationTest
     // Original authors: Marius Scurtescu, Johnny Bufu
     "normalize uppercase URL identifiers" in {
-      normalize("HTTP://EXAMPLE.COM/") must be equalTo "http://example.com/"
+      normalize("HTTP://EXAMPLE.COM/") must beSome("http://example.com/")
     }
     "normalize percent signs" in {
-      normalize("HTTP://EXAMPLE.COM/%63") must be equalTo "http://example.com/c"
+      normalize("HTTP://EXAMPLE.COM/%63") must beSome("http://example.com/c")
     }
     "normalize port" in {
-      normalize("HTTP://EXAMPLE.COM:80/A/B?Q=Z#") must be equalTo "http://example.com/A/B?Q=Z"
-      normalize("https://example.com:443") must be equalTo "https://example.com/"
+      normalize("HTTP://EXAMPLE.COM:80/A/B?Q=Z#") must beSome("http://example.com/A/B?Q=Z")
+      normalize("https://example.com:443") must beSome("https://example.com/")
     }
     "normalize paths" in {
-      normalize("http://example.com//a/./b/../b/c/") must be equalTo "http://example.com/a/b/c/"
-      normalize("http://example.com?bla") must be equalTo "http://example.com/?bla"
+      normalize("http://example.com//a/./b/../b/c/") must be beSome("http://example.com/a/b/c/")
+      normalize("http://example.com?bla") must beSome("http://example.com/?bla")
     }
   }
 
@@ -38,22 +36,22 @@ object DiscoverySpec extends Specification with Mockito {
     // http://openid.net/specs/openid-authentication-2_0.html#normalization_example
     "normalize URLs according to he OpenID example in the spec" in {
       "A URI with a missing scheme is normalized to a http URI" in {
-        normalize("example.com") must be equalTo "http://example.com/"
+        normalize("example.com") must beSome("http://example.com/")
       }
       "An empty path component is normalized to a slash" in {
-        normalize("http://example.com") must be equalTo "http://example.com/"
+        normalize("http://example.com") must beSome("http://example.com/")
       }
       "https URIs remain https URIs" in {
-        normalize("https://example.com/") must be equalTo "https://example.com/"
+        normalize("https://example.com/") must beSome("https://example.com/")
       }
       "No trailing slash is added to non-empty path components" in {
-        normalize("http://example.com/user") must be equalTo "http://example.com/user"
+        normalize("http://example.com/user") must beSome("http://example.com/user")
       }
       "Trailing slashes are preserved on non-empty path components" in {
-        normalize("http://example.com/user/") must be equalTo "http://example.com/user/"
+        normalize("http://example.com/user/") must beSome("http://example.com/user/")
       }
       "Trailing slashes are preserved when the path is empty" in {
-        normalize("http://example.com/") must be equalTo "http://example.com/"
+        normalize("http://example.com/") must beSome("http://example.com/")
       }
     }
 
@@ -65,14 +63,14 @@ object DiscoverySpec extends Specification with Mockito {
       // XRI is currently not supported
 
       "The input SHOULD be treated as an http URL; if it does not include a \"http\" or \"https\" scheme, the Identifier MUST be prefixed with the string \"http://\"." in {
-        normalize("example.com") must be equalTo "http://example.com/"
+        normalize("example.com") must be beSome("http://example.com/")
       }
 
       "If the URL contains a fragment part, it MUST be stripped off together with the fragment delimiter character \"#\"." in {
-        normalize("example.com#thefragment") must be equalTo "http://example.com/"
-        normalize("example.com/#thefragment") must be equalTo "http://example.com/"
-        normalize("http://example.com#thefragment") must be equalTo "http://example.com/"
-        normalize("https://example.com/#thefragment") must be equalTo "https://example.com/"
+        normalize("example.com#thefragment") must beSome("http://example.com/")
+        normalize("example.com/#thefragment") must beSome("http://example.com/")
+        normalize("http://example.com#thefragment") must beSome("http://example.com/")
+        normalize("https://example.com/#thefragment") must beSome("https://example.com/")
       }
     }
   }

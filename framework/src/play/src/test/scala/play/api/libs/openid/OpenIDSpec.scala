@@ -165,6 +165,26 @@ object OpenIDSpec extends Specification with Mockito {
       }
     }
 
+    "verify the response using discovery on the claimed Identifier using the Google discovery as a fallback" in {
+      val ws = new WSMock
+      ws.response.status returns NOT_FOUND thenReturns OK thenReturns OK
+      ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml") thenReturns Some("text/plain")
+      ws.response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/example-gapps-response.xml"))
+      ws.response.body returns "is_valid:true\n"
+
+      val openId = new OpenIDClient(ws.url)
+
+      openId.verifiedId(setupMockRequest(openIdResponse)).value.get
+
+      "the endpoint is resolved using discovery on the claimed Id" in {
+        // This is using a fixed discovery endpoint -- see https://sites.google.com/site/oauthgoog/fedlogininterp/openiddiscovery
+        ws.urls(1) must be equalTo "https://www.google.com/accounts/o8/user-xrds?uri=http%3A%2F%2Fexample.com%2Fopenid%3Fid%3DC123"
+      }
+      "use direct verification on the discovered endpoint" in {
+        ws.urls(2) must be equalTo "https://www.google.com/a/example.com/o8/ud?be=o8" // From the mock XRDS
+      }
+    }
+
     "fail response verification if direct verification fails" in {
       val ws = new WSMock
 
