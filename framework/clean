@@ -2,6 +2,8 @@
 
 echo "[info] Cleaning target directories..."
 
+
+
 rm -rf `dirname $0`/target
 rm -rf `dirname $0`/project/project
 rm -rf `dirname $0`/project/target
