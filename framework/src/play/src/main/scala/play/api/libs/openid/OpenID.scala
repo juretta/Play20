@@ -91,10 +91,9 @@ object OpenID {
 
   private def verifiedId(queryString: Map[String, Seq[String]]): Promise[UserInfo] = {
     (queryString.get("openid.mode").flatMap(_.headOption),
-      queryString.get("openid.claimed_id").flatMap(_.headOption).orElse(queryString.get("openid.identity").flatMap(_.headOption)),
-      queryString.get("openid.op_endpoint").flatMap(_.headOption)) match {
-        case (Some("id_res"), Some(id), endPoint) => {
-          val server: Promise[String] = endPoint.map(PurePromise(_)).getOrElse(discoverServer(id).map(_.url))
+      queryString.get("openid.claimed_id").flatMap(_.headOption).orElse(queryString.get("openid.identity").flatMap(_.headOption))) match {
+        case (Some("id_res"), Some(id)) => {
+          val server: Promise[String] = discoverServer(id).map(_.url)
           server.flatMap(url => {
             val fields = (queryString - "openid.mode" + ("openid.mode" -> Seq("check_authentication")))
                     .mapValues(_.map(URLEncoder.encode(_, "UTF-8")))
